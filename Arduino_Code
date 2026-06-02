@@ -1,0 +1,138 @@
+#include <LiquidCrystal.h>
+
+// LCD Pin Configuration
+// RS, E, D4, D5, D6, D7
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+// Pin Definitions
+#define TEMP_SENSOR A0    // TMP36 connected to Analog Pin A0
+#define GREEN_LED 8       // Green LED for normal condition
+#define RED_LED 9         // Red LED for alert condition
+#define BUZZER 10         // Buzzer for audio alert
+
+// Temperature Thresholds
+const float TEMP_HIGH = 30.0;   // Upper Temperature Limit (°C)
+const float TEMP_LOW  = 15.0;   // Lower Temperature Limit (°C)
+
+void setup() {
+
+  // Initialize Serial Communication
+  Serial.begin(9600);
+
+  // Initialize LCD
+  lcd.begin(16, 2);
+
+  // Configure Output Pins
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+
+  // Welcome Message
+  lcd.setCursor(0, 0);
+  lcd.print("TEMP MONITOR");
+
+  lcd.setCursor(0, 1);
+  lcd.print("Initializing");
+
+  delay(2000);
+
+  lcd.clear();
+
+  Serial.println("Smart Temperature Monitor Initialized");
+}
+
+void loop() {
+
+  // Read Analog Value from TMP36 Sensor
+  int sensorValue = analogRead(TEMP_SENSOR);
+
+  // Convert ADC Reading to Voltage
+  float voltage = sensorValue * (5.0 / 1023.0);
+
+  // Convert Voltage to Temperature (°C)
+  float temperature = (voltage - 0.5) * 100.0;
+
+  // Display Temperature on LCD
+  displayReadings(temperature);
+
+  // Check Temperature Thresholds
+  checkThresholds(temperature);
+
+  // Print Temperature to Serial Monitor
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.println(" C");
+
+  delay(1000);   // Update every 1 second
+}
+
+// Display Function
+void displayReadings(float temperature) {
+
+  lcd.clear();
+
+  // First Row: Temperature
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(temperature, 1);
+  lcd.print((char)223);   // Degree Symbol
+  lcd.print("C");
+
+  // Second Row: Status
+  lcd.setCursor(0, 1);
+
+  if (temperature > TEMP_HIGH) {
+
+    lcd.print("HIGH ALERT");
+  }
+  else if (temperature < TEMP_LOW) {
+
+    lcd.print("LOW ALERT");
+  }
+  else {
+
+    lcd.print("NORMAL");
+  }
+}
+
+// Threshold Check Function
+void checkThresholds(float temperature) {
+
+  if (temperature > TEMP_HIGH) {
+
+    // High Temperature Alert
+
+    digitalWrite(GREEN_LED, LOW);
+    digitalWrite(RED_LED, HIGH);
+
+    // High Frequency Alarm
+    tone(BUZZER, 1000);
+
+    Serial.println("WARNING: Temperature HIGH!");
+  }
+
+  else if (temperature < TEMP_LOW) {
+
+    // Low Temperature Alert
+
+    digitalWrite(GREEN_LED, LOW);
+    digitalWrite(RED_LED, HIGH);
+
+    // Low Frequency Alarm
+    tone(BUZZER, 500);
+
+    Serial.println("WARNING: Temperature LOW!");
+  }
+
+  else {
+
+    // Normal Temperature Range
+
+    digitalWrite(GREEN_LED, HIGH);
+    digitalWrite(RED_LED, LOW);
+
+    noTone(BUZZER);
+
+    Serial.println("Temperature Normal");
+  }
+}
