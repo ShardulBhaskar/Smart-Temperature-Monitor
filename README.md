@@ -1,4 +1,4 @@
-# Smart-Temperature-Sensor
+# Smart-Temperature-Monitor
 
 A basic Embedded Systems and IoT project built using Arduino UNO and a TMP36 temperature sensor. The system continuously monitors ambient temperature, displays readings on a 16×2 LCD, and generates visual and audio alerts when predefined temperature thresholds are exceeded.
 
